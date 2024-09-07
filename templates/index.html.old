@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashlight Control</title>
+</head>
+<body>
+    <button id="flashlightButton">Toggle Flashlight</button>
+    <video id="video" style="display: none;"></video>
+    <script>
+        const button = document.getElementById('flashlightButton');
+        const video = document.getElementById('video');
+        let stream = null;
+        let track = null;
+        let isFlashlightOn = false;
+
+        async function init() {
+            try {
+                // Request access to the camera
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = stream;
+                video.play();
+                track = stream.getVideoTracks()[0];
+
+                // Ensure the device supports the 'torch' constraint
+                const capabilities = track.getCapabilities();
+                if (!capabilities.torch) {
+                    alert('Flashlight not supported on this device.');
+                    return;
+                }
+
+                button.addEventListener('click', toggleFlashlight);
+            } catch (error) {
+                console.error('Error accessing the camera: ', error);
+                alert('Error accessing the camera. Make sure to grant permission.');
+            }
+        }
+
+        async function toggleFlashlight() {
+            try {
+                if (isFlashlightOn) {
+                    await track.applyConstraints({ advanced: [{ torch: false }] });
+                } else {
+                    await track.applyConstraints({ advanced: [{ torch: true }] });
+                }
+                isFlashlightOn = !isFlashlightOn;
+            } catch (error) {
+                console.error('Error toggling flashlight: ', error);
+                alert('Error toggling flashlight.');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

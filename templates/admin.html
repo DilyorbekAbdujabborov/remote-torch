@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Page</title>
+    <style>
+        .client-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .client-item label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Admin Page</h1>
+    <ul id="clients-list">
+
+    </ul>
+    <p style="display: none;">Connecting to WebSocket...</p>
+    <script>
+        const ws = new WebSocket("wss://"+ window.location.host +"/ws?admin=True");
+        ws.onopen = function (event) {
+            let p = document.querySelector("p")
+            p.style.display = "none";
+            console.log("WebSocket is open now.");
+        };
+
+        ws.onmessage = function (event) {
+            const clientsList = JSON.parse(event.data);
+            const listElement = document.getElementById('clients-list');
+            listElement.innerHTML = '';
+            clientsList.forEach(clientId => {
+                const listItem = document.createElement('div');
+                listItem.classList.add('client-item');
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = clientId;
+
+                const switchLabel = document.createElement('label');
+                switchLabel.textContent = 'Online';
+
+                const switchInput = document.createElement('input');
+                switchInput.type = 'checkbox';
+            switchInput.checked = false;
+                switchInput.addEventListener('change', (event) => {
+                    console.log(`${clientId} is ${event.target.checked ? 'on' : 'off'}`);
+                    ws.send(JSON.stringify({"type":"command", "name":`${clientId}`, "status":`${event.target.checked ? 'on' : 'off'}`}));
+                });
+
+                listItem.appendChild(nameSpan);
+                listItem.appendChild(switchLabel);
+                listItem.appendChild(switchInput);
+                listElement.appendChild(listItem);
+            });
+        };
+
+        ws.onclose = function (event) {
+            console.log("WebSocket is closed now.");
+        };
+    </script>
+</body>
+</html>
