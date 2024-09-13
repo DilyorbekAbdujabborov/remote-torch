@@ -85,11 +85,11 @@ async def websocket_endpoint(websocket: WebSocket, admin: bool = False):
     except WebSocketDisconnect:
         await manager.disconnect(websocket, name=name, is_admin=admin)
 
-# @app.get("/admin/stream")
-# async def admin_stream():
-#     async def event_generator():
-#         while True:
-#             await asyncio.sleep(1)
-#             yield f"data: {json.dumps(list(manager.client_ids.values()))}\n\n"
-#
-#     return StreamingResponse(event_generator(), media_type="text/event-stream")
+@app.get("/admin/stream")
+async def admin_stream():
+    async def event_generator():
+        while True:
+            await asyncio.sleep(1)
+            yield f"data: {json.dumps(list(manager.client_ids.values()))}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
